@@ -1,0 +1,6 @@
+/package
+.idea
+*.pdf
+.env
+./venv
+*.csv
