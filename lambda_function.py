@@ -8,17 +8,22 @@ import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import urllib.request
+import boto3
+
 load_dotenv()
 
 def lambda_handler(event, context):
     class Daily:
         all = []
         dict_pdf_filename_download_url = {}
+        mail_list = []
 
-        with open('demo-mail.csv', newline='') as f:
-            reader = csv.reader(f)
-            data = list(reader)
-            mail_list = data[0]
+        client =  boto3.resource('dynamodb')
+        table = client.Table('yours-daily-mail-list')
+        response = table.scan()
+        items = response['Items']
+        for item in items:
+            mail_list.append(item['email'])
 
         def __init__(self, data_url: str, limit: int, newspaper_title: str) -> None:
             Daily.all = []
@@ -83,7 +88,7 @@ def lambda_handler(event, context):
             return f"Daily( {self.NEWSPAPER_TITLE}, {self.DATA_URL}, {self.LIMIT}, {Daily.mail_list})"
 
     def scheduler() -> None:
-        with open('data.csv', newline='') as f:
+        with open('the-hindu.csv', newline='') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 data_url = row['url']
