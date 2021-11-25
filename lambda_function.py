@@ -12,13 +12,14 @@ import boto3
 
 load_dotenv()
 
+
 def lambda_handler(event, context):
     class Daily:
         all = []
         dict_pdf_filename_download_url = {}
         mail_list = []
 
-        client =  boto3.resource('dynamodb')
+        client = boto3.resource('dynamodb')
         table = client.Table('yours-daily-mail-list')
         response = table.scan()
         items = response['Items']
@@ -52,26 +53,33 @@ def lambda_handler(event, context):
             else:
                 print('CopyRight Issues')
 
-        def send_mail(self, pdf_filename, pdf_download_url) -> None:
-            try:
-                print('sending email')
-                email_subject = 'Yours Daily ' + self.NEWSPAPER_TITLE + ' : ' + pdf_filename
-                email_from = 'Yours Daily'
-                msg = EmailMessage()
-                msg['Subject'] = email_subject
-                msg['From'] = email_from
-                msg['Bcc'] = Daily.mail_list
-                msg.set_content("Your Newspaper is here")
-                response = urllib.request.urlopen(pdf_download_url)
-                msg.add_attachment(response.read(), maintype='application', subtype='octet-stream',
-                                   filename=pdf_filename)
+        def send_mail(self, pdf_filename, pdf_download_url) -> Exception:
+            print('sending email')
+            email_subject = 'Yours Daily ' + self.NEWSPAPER_TITLE + ' : ' + pdf_filename
+            email_from = 'Yours Daily'
+            msg = EmailMessage()
+            msg['Subject'] = email_subject
+            msg['From'] = email_from
+            msg['Bcc'] = Daily.mail_list
 
+            file = urllib.request.urlopen(pdf_download_url)
+            file_size = file.length / (1024 * 1024)
+            print(file_size, 'mb')
+
+            if file_size > 25:
+                msg.set_content(f"""File size exceeds limit\nBut here is your direct download link {pdf_download_url}\nHave a good day ahead!""")
+            else:
+                msg.set_content(f"""Here is your today's newspaper\nHave a good day ahead!""")
+                msg.add_attachment(file.read(), maintype='application', subtype='octet-stream',
+                                   filename=pdf_filename)
+            try:
                 with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
                     server.login(os.getenv('EMAIL'), os.getenv('EMAIL_PASSWORD'))
                     server.send_message(msg)
-                print(pdf_filename, "sent")
-            except smtplib.SMTPException as e:
-                print(e)
+            except smtplib.SMTPException as stmp_e:
+                return stmp_e
+            except Exception as e:
+                return e
 
         def make_dict_from_scrapper(self) -> None:
             req = requests.get(self.DATA_URL)
@@ -99,5 +107,9 @@ def lambda_handler(event, context):
                 obj.kickstart()
 
     print('Automation Started')
-    scheduler()
-    print('Automation Completed')
+    try:
+        scheduler()
+        print('Automation Completed')
+    except Exception as e:
+        print(type(e))
+        return e
