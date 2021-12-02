@@ -1,5 +1,7 @@
 import os
 import re
+from datetime import  datetime
+import pytz
 import csv
 import smtplib
 from email.message import EmailMessage
@@ -55,7 +57,9 @@ def lambda_handler(event, context):
 
         def send_mail(self, pdf_filename, pdf_download_url) -> Exception:
             print('sending email')
-            email_subject = 'Yours Daily ' + self.NEWSPAPER_TITLE + ' : ' + pdf_filename
+            IST = pytz.timezone('Asia/Kolkata')
+            today_date = (datetime.now(IST).strftime('%d-%m-%Y'))
+            email_subject = 'Yours Daily ' + self.NEWSPAPER_TITLE + ' : ' + today_date
             email_from = 'Yours Daily'
             msg = EmailMessage()
             msg['Subject'] = email_subject
