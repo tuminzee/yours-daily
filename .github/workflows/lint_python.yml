@@ -12,7 +12,7 @@ jobs:
       - run: bandit --recursive --skip B101 . || true  # B101 is assert statements
       - run: black --check . || true
       - run: codespell --ignore-words-list="ist"
-      - run: flake8 . --count -max-complexity=19 --max-line-length=145 --show-source --statistics
+      - run: flake8 . --count --max-complexity=19 --max-line-length=145 --show-source --statistics
       - run: isort --check-only --profile black . || true
       - run: pip install -r requirements.txt || pip install --editable . || true
       - run: mkdir --parents --verbose .mypy_cache
