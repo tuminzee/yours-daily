@@ -1,6 +1,6 @@
 import os
 import re
-from datetime import  datetime
+from datetime import datetime
 import pytz
 import csv
 import smtplib
@@ -23,10 +23,7 @@ def lambda_handler(event, context):
 
         client = boto3.resource('dynamodb')
         table = client.Table('yours-daily-mail-list')
-        response = table.scan()
-        items = response['Items']
-        for item in items:
-            mail_list.append(item['email'])
+        mail_list = [item['email'] for item in table.scan()['Items']]
 
         def __init__(self, data_url: str, limit: int, newspaper_title: str) -> None:
             Daily.all = []
@@ -73,7 +70,7 @@ def lambda_handler(event, context):
             if file_size > 25:
                 msg.set_content(f"""File size exceeds limit\nBut here is your direct download link {pdf_download_url}\nHave a good day ahead!""")
             else:
-                msg.set_content(f"""Here is your today's newspaper\nHave a good day ahead!""")
+                msg.set_content("""Here is your today's newspaper\nHave a good day ahead!""")
                 msg.add_attachment(file.read(), maintype='application', subtype='octet-stream',
                                    filename=pdf_filename)
             try:
